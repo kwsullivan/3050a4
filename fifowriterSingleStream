@@ -1,0 +1,25 @@
+#!/bin/sh
+
+#
+# Copy stdin to a FIFO as a series of separate open+write
+#
+
+# variable for our pipe
+#fifo=/tmp/myFIFO-$USER.$$
+fifo="/tmp/server-${USER}-fifo"
+
+echo 'Now copying stdin into the FIFO.  Type "quit" to stop'
+
+# read from stdin, copying to the open FIFO stopping when told to "quit"
+{
+    while read line
+    do
+        echo $line
+        if [ "$line" = 'quit' ]
+        then
+            # leave the while loop
+            break
+        fi
+    done
+} > $fifo
+
