@@ -3,6 +3,7 @@
 # set up some globals
 FIFO_S="/tmp/server-${USER}-fifo"
 FIFO_P="/tmp/processor-${USER}-fifo"
+LOG_P="/tmp/processor-${USER}"
 
 eval "rm -f ${FIFO_S}"
 eval "rm -f ${FIFO_P}"
@@ -36,6 +37,13 @@ elif [ "$OS" = "Linux" ]; then
 else
 	NUM_CORES=0
 fi
+core=0
+while [ $core -lt ${NUM_CORES} ]
+do
+    echo "CORE: $core"
+    core=$(( $core + 1 ))
+    #core=`expr $core + 1`
+done
 
 echo "Starting up ${NUM_CORES} processing units"
 # process command line options (so that number of processors can be overridden)
@@ -81,7 +89,6 @@ do
         echo "Command on server: $line"
         echo $line > ${FIFO_P} &
         (exec  sh fiforeaderPiecewise ${FIFO_P})
-        echo "ok"
     fi
     # print out what we got
     #( exec  sh fiforeaderPiecewise ${FIFO_P})
