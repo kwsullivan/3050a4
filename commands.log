@@ -1,3 +1,16 @@
+Reader exiting
+Reader exiting
+Reader exiting
+commands.log
+fiforeaderPiecewise
+fifowriterPiecewise
+fifowriterSingleStream
+kevin,0077
+kevin2
+mgServer
+mgSocketInterface
+mgSubmitJob
+timedCountdown
 commands.log
 fiforeaderPiecewise
 fifowriterPiecewise
@@ -10,6 +23,39 @@ commands.log
 fiforeaderPiecewise
 fifowriterPiecewise
 fifowriterSingleStream
+mgServer
+mgSocketInterface
+mgSubmitJob
+timedCountdown
+Reader exiting
+Reader exiting
+Reader exiting
+commands.log
+fifowriterPiecewise
+fifowriterSingleStream
+mgProcessor
+mgServer
+mgSocketInterface
+mgSubmitJob
+timedCountdown
+Reader exiting
+Reader exiting
+Reader exiting
+commands.log
+fifowriterPiecewise
+fifowriterSingleStream
+mgProcessor
+mgServer
+mgSocketInterface
+mgSubmitJob
+timedCountdown
+Reader exiting
+Reader exiting
+Reader exiting
+commands.log
+fifowriterPiecewise
+fifowriterSingleStream
+mgProcessor
 mgServer
 mgSocketInterface
 mgSubmitJob
