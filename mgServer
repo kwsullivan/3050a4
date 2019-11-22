@@ -102,7 +102,7 @@ done
 # create the server FIFO (if not already created) that the server will read from
 if [ ! -p ${FIFO_S} ]; then
     if
-        exec mkfifo -p ${FIFO_S}
+        exec mkfifo ${FIFO_S}
     then
         echo "Ready for processing : place jobs into ${FIFO_S}"
     else
