@@ -94,7 +94,8 @@ do
     echo "fifo.$core created"
     umask 0077 ${FIFO_P}.$core
     (exec  sh mgProcessor ${FIFO_P}.$core ${LOG_P}.$core $core &)
-    job_status[$core]='0'
+    set -A job_status[$core] '0'
+    #job_status[$core]='0'
     #${job_status[$core]}='0'
     core=$(( $core + 1 ))
 done
@@ -129,7 +130,7 @@ do
     else
         echo "Command on server: $line"
         echo $line > ${FIFO_P}.$core
-        ${job_status[$core]}=$(( ${job_status[$core]} + 1 ))
+        #${job_status[$core]}=$(( ${job_status[$core]} + 1 ))
         # echo "JOB $core: ${job_status[$core]}"
         core=$(( $core + 1 ))
         if [ $core -eq "4" ]; then
