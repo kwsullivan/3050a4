@@ -70,7 +70,7 @@ while keepGoing:
             if message == "quit":
                 keepGoing = False
         else:
-            print "Ending connection"
+            pass
 
 
     # close the message socket and go back to waiting on the stream socket

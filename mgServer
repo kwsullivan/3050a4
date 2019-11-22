@@ -6,7 +6,8 @@ FIFO_P="/tmp/processor-${USER}-fifo"
 LOG_P="/tmp/processor-${USER}.log"
 NUM_CORES=0
 
-function stop_server() {
+# shutdown each processor on the server
+function stop_processors {
     curr_core=0
     num_cores=$1
     while [ $curr_core -lt "$num_cores" ]
@@ -16,7 +17,8 @@ function stop_server() {
     done
 }
 
-function server_status() {
+# prints PID and jobs completed for each processor running on the server
+function server_status {
     curr_core=0
     num_cores=$1
     job_status=$2
@@ -75,6 +77,14 @@ if [ ${NUM_CORES} -eq "0" ]; then
         NUM_CORES=0
     fi
 fi
+
+# exits gracefully when ^C is entered
+trap 'stop_processors "${NUM_CORES}"' SIGINT
+
+# startup message
+echo "Starting up ${NUM_CORES} processing units"
+
+# create a FIFO and run a process in the background for each processor
 core=0
 declare -a job_status
 while [ $core -lt ${NUM_CORES} ]
@@ -89,12 +99,7 @@ do
     core=$(( $core + 1 ))
 done
 
-# Exits gracefully when ^C is entered
-trap 'stop_server "${NUM_CORES}"' SIGINT
-
-# Message
-echo "Starting up ${NUM_CORES} processing units"
-
+# create the server FIFO (if not already created) that the server will read from
 if [ ! -p ${FIFO_S} ]; then
     if
         mkfifo -p ${FIFO_S}
@@ -107,12 +112,14 @@ else
     echo "Ready for processing : place jobs into ${FIFO_S}"
 fi
 
+# running server that will feed data to processors in round robin
+#   increments jobs completed in an array for each processor
 core=0
 while read line < ${FIFO_S}
 do
     if [ "$line" = 'shutdown' ]
     then
-        stop_server "$NUM_CORES"
+        stop_processors "$NUM_CORES"
         # leave the while loop
         break
     elif [ "$line" = 'status' ]
@@ -123,7 +130,7 @@ do
         echo "Command on server: $line"
         echo $line > ${FIFO_P}.$core
         job_status[$core]=$(( ${job_status[$core]} + 1 ))
-        echo "JOB $core: ${job_status[$core]}"
+        # echo "JOB $core: ${job_status[$core]}"
         core=$(( $core + 1 ))
         if [ $core -eq "4" ]; then
             core=0

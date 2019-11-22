@@ -5,19 +5,9 @@ LOG_P="/tmp/processor-${USER}.log"
 # Read all the data available from a FIFO as a series of separate open+reads
 #
 
-# if [ $# -ne 1 ]
-# then
-#     echo "Need the name of the FIFO to read from" >&2
-#     exit -1
-# fi
-
 fifo=$1
 log=$2
 core=$3
-if [ ! -p $fifo ]; then
-    echo "The FIFO ${fifo} doesn't exist - is a writing running?"
-    exit 1
-fi
 
 while read line < $fifo
 do
