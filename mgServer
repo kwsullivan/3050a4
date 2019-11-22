@@ -79,7 +79,7 @@ if [ ${NUM_CORES} -eq "0" ]; then
 fi
 
 # exits gracefully when ^C is entered
-trap 'stop_processors "${NUM_CORES}"' SIGINT
+trap 'stop_processors "${NUM_CORES}"' INT
 
 # startup message
 echo "Starting up ${NUM_CORES} processing units"
@@ -94,8 +94,8 @@ do
     echo "fifo.$core created"
     umask 0077 ${FIFO_P}.$core
     (exec  sh mgProcessor ${FIFO_P}.$core ${LOG_P}.$core $core &)
-    # job_status[$core]=0
-    ${job_status[$core]}=0
+    job_status[$core]=0
+    #${job_status[$core]}=0
     core=$(( $core + 1 ))
 done
 
