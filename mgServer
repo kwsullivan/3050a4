@@ -133,7 +133,7 @@ do
         #${job_status[$core]}=$(( ${job_status[$core]} + 1 ))
         # echo "JOB $core: ${job_status[$core]}"
         core=$(( $core + 1 ))
-        if [ $core -eq "4" ]; then
+        if [ $core -eq ${NUM_CORES} ]; then
             core='0'
         fi
     fi
