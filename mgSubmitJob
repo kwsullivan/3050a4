@@ -50,4 +50,3 @@ except socket.error, msg:
 
 # send the command to the server
 sock.sendall(commandData)
-

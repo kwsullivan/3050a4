@@ -4,6 +4,7 @@ import socket
 import getpass
 import sys
 import os
+import subprocess
 
 if len(sys.argv) != 2:
     print >> sys.stderr, sys.argv[0], "takes exactly one argument - the FIFO"
@@ -11,6 +12,7 @@ if len(sys.argv) != 2:
 
 # record the name of the FIFO we echo everything to
 FIFO_NAME = sys.argv[1]
+
 
 # set up the name of the socket that we want to use
 FILE_ADDRESS = "/tmp/server-%s-sock" % getpass.getuser()
@@ -51,12 +53,6 @@ while keepGoing:
     message = True
     while message and keepGoing:
 
-        # the 1024 here is simply the size of message section
-        # we read in one go - much like read() we can read a
-        # message in pieces, just like we read a file.  Here
-        # we are implicitly expecting that none of the lines
-        # send are more than 1024 bytes, as we are printing
-        # them out one by one.
         try:
             message = msgsock.recv(1024)
         except OSError, msg:
@@ -64,9 +60,14 @@ while keepGoing:
             sys.exit(1)
 
         if message:
-            sys.stdout.write("got -->%s" % message)
+            sys.stdout.write("got -->%s\n" % message)
+            cmd = "echo {} > {}".format(message, FIFO_NAME)
+            print "{}".format(cmd)
+            os.system(cmd)
+            # process = subprocess.Popen(message, stdout=FIFO_NAME)
+            # output, error = process.communicate()
 
-            if message == "quit\n":
+            if message == "quit":
                 keepGoing = False
         else:
             print "Ending connection"
@@ -75,9 +76,9 @@ while keepGoing:
     # close the message socket and go back to waiting on the stream socket
     msgsock.close()
 
-
 print "Told to quit, so cleaning up..."
 sock.close()
+
 os.unlink(FILE_ADDRESS)
 
 sys.exit(0)

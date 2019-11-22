@@ -15,24 +15,24 @@ fifo=$1
 log=$2
 core=$3
 if [ ! -p $fifo ]; then
-	echo "The FIFO ${fifo} doesn't exist - is a writing running?"
-	exit 1
+    echo "The FIFO ${fifo} doesn't exist - is a writing running?"
+    exit 1
 fi
 
 while read line < $fifo
 do
-	if [ "$line" = 'quit' ]
-	then
-		echo "Processor $core exiting"
-		# leave the while loop
-		break
-	else
-		echo "Command on $fifo: $line"
-		( echo "PROCESSOR ID: $core" >> $log )
-		( echo "COMMAND: $line" >> $log )
-		( echo "TIME: `date`" >> $log )
-		( echo "OUTPUT:" >> $log )
-		( exec $line >> $log )
-		(echo "----------" >> $log)
-	fi
+    if [ "$line" = 'quit' ]
+    then
+        echo "Processor $core exiting"
+        # leave the while loop
+        break
+    else
+        echo "Command on $fifo: $line"
+        ( echo "PROCESSOR ID: $core" >> $log )
+        ( echo "COMMAND: $line" >> $log )
+        ( echo "TIME: `date`" >> $log )
+        ( echo "OUTPUT:" >> $log )
+        ( exec $line >> $log )
+        (echo "----------" >> $log)
+    fi
 done
