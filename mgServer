@@ -5,7 +5,7 @@ FIFO_S="/tmp/server-${USER}-fifo"
 FIFO_P="/tmp/processor-${USER}-fifo"
 LOG_P="/tmp/processor-${USER}.log"
 NUM_CORES=0
-
+declare -a job_status
 # shutdown each processor on the server
 stop_processors() {
     curr_core=0
@@ -86,7 +86,6 @@ echo "Starting up ${NUM_CORES} processing units"
 
 # create a FIFO and run a process in the background for each processor
 core=0
-declare -a job_status
 while [ $core -lt ${NUM_CORES} ]
 do
     if [ ! -p ${FIFO_P}.$core ]; then
