@@ -7,7 +7,7 @@ LOG_P="/tmp/processor-${USER}.log"
 NUM_CORES=0
 
 # shutdown each processor on the server
-function stop_processors {
+stop_processors() {
     curr_core=0
     num_cores=$1
     while [ $curr_core -lt "$num_cores" ]
@@ -18,7 +18,7 @@ function stop_processors {
 }
 
 # prints PID and jobs completed for each processor running on the server
-function server_status {
+server_status() {
     curr_core=0
     num_cores=$1
     job_status=$2
