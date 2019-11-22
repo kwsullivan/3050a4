@@ -4,11 +4,11 @@
 FIFO_S="/tmp/server-${USER}-fifo"
 FIFO_P="/tmp/processor-${USER}-fifo"
 LOG_P="/tmp/processor-${USER}.log"
-NUM_CORES=0
+NUM_CORES='0'
 declare -a job_status
 # shutdown each processor on the server
 stop_processors() {
-    curr_core=0
+    curr_core='0'
     num_cores=$1
     while [ $curr_core -lt "$num_cores" ]
     do
@@ -19,7 +19,7 @@ stop_processors() {
 
 # prints PID and jobs completed for each processor running on the server
 server_status() {
-    curr_core=0
+    curr_core='0'
     num_cores=$1
     job_status=$2
 
@@ -74,7 +74,7 @@ if [ ${NUM_CORES} -eq "0" ]; then
     elif [ "$OS" = "Linux" ]; then
         NUM_CORES=$(eval nproc)
     else
-        NUM_CORES=0
+        NUM_CORES='0'
     fi
 fi
 
@@ -94,8 +94,7 @@ do
     echo "fifo.$core created"
     umask 0077 ${FIFO_P}.$core
     (exec  sh mgProcessor ${FIFO_P}.$core ${LOG_P}.$core $core &)
-    job_status[$core]=0
-    #${job_status[$core]}=0
+    job_status[$core]='0'
     core=$(( $core + 1 ))
 done
 
@@ -133,7 +132,7 @@ do
         # echo "JOB $core: ${job_status[$core]}"
         core=$(( $core + 1 ))
         if [ $core -eq "4" ]; then
-            core=0
+            core='0'
         fi
     fi
 
