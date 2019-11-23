@@ -96,7 +96,7 @@ do
 done
 
 # creates the socket process in the background
-# ${SOCK_S}
+ #(exec python mgSocketInterface ${FIFO_S} &)
 
 # create the server FIFO (if not already created) that the server will read from
 if [ ! -p ${FIFO_S} ]; then

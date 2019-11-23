@@ -18,12 +18,11 @@ do
         break
     else
         echo "Command on $fifo: $line"
-        (   echo "Processor ID: $core" >> $log 
-            echo "TIME: `date`" >> $log
-            echo "COMMAND: $line" >> $log
-            echo "OUTPUT:" >> $log
-            exec $line >> $log
-            echo "----------" >> $log
-        )
+        (exec echo "`date`" >> $log)
+        (exec echo "PID : $core" >> $log)
+        (exec echo "COMMAND : $line" >> $log)
+        (exec echo "OUTPUT..." >> $log)
+        (exec $line >> $log)
+        (exec echo "----------" >> $log)
     fi
 done
