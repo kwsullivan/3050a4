@@ -119,7 +119,6 @@ while read line < ${FIFO_S}
 do
     if [ "$line" = 'shutdown' ]
     then
-        stop_processors "$NUM_CORES"
         # leave the while loop
         shutdown=1
         break
