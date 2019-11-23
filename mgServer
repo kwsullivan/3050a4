@@ -114,17 +114,18 @@ fi
 # running server that will feed data to processors in round robin
 #   increments jobs completed in an array for each processor
 core=0
+shutdown=0
 while read line < ${FIFO_S}
 do
     if [ "$line" = 'shutdown' ]
     then
         stop_processors "$NUM_CORES"
         # leave the while loop
+        shutdown=1
         break
     elif [ "$line" = 'status' ]
     then
         server_status "$NUM_JOBS"
-
     else
         echo "Command on server: $line"
         echo $line > ${FIFO_P}.$core
@@ -137,5 +138,8 @@ do
 
 done
 
+if [ ${shutdown} -eq "0" ]; then
+    stop_processors "$NUM_CORES"
+fi
 #
-echo "Server exiting"
+echo "Server exiting..."

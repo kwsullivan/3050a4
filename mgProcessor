@@ -13,7 +13,7 @@ while read line < $fifo
 do
     if [ "$line" = 'quit' ]
     then
-        echo "Processor $core exiting"
+        echo "Processor $core exiting..."
         # leave the while loop
         break
     else
