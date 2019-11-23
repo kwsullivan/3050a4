@@ -86,8 +86,8 @@ while [ $core -lt ${NUM_CORES} ]
 do
     if [ ! -p ${FIFO_P}.$core ]; then
         mkfifo ${FIFO_P}.$core
+        echo "fifo.$core created"
     fi
-    echo "fifo.$core created"
     umask 0077 ${FIFO_P}.$core
     (exec  sh mgProcessor ${FIFO_P}.$core ${LOG_P}.$core $core &)
     core=$(( $core + 1 ))
