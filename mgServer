@@ -5,7 +5,7 @@ FIFO_S="/tmp/server-${USER}-fifo"
 FIFO_P="/tmp/processor-${USER}-fifo"
 LOG_P="/tmp/processor-${USER}.log"
 NUM_CORES='0'
-declare -a job_status
+NUM_JOBS='0'
 # shutdown each processor on the server
 stop_processors() {
     curr_core='0'
@@ -19,16 +19,10 @@ stop_processors() {
 
 # prints PID and jobs completed for each processor running on the server
 server_status() {
-    curr_core='0'
-    num_cores=$1
-    job_status=$2
-
-    printf "PID JOBS COMPLETED\n"
-    while [ $curr_core -lt "$num_cores" ]
-    do
-        printf "%d %16d\n" $curr_core ${job_status[$curr_core]}
-        curr_core=$(( $curr_core + 1 ))
-    done
+    num_jobs=$1
+    echo "----- Server Status -----"
+    echo "Jobs Completed : $num_jobs"
+    echo "-------------------------"
 }
 
 # process command line options (so that number of processors can be overridden)
@@ -94,10 +88,6 @@ do
     echo "fifo.$core created"
     umask 0077 ${FIFO_P}.$core
     (exec  sh mgProcessor ${FIFO_P}.$core ${LOG_P}.$core $core &)
-    set -a job_status[$core] '0'
-    echo ${job_status[$core]}
-    #job_status[$core]='0'
-    #${job_status[$core]}='0'
     core=$(( $core + 1 ))
 done
 
@@ -126,13 +116,12 @@ do
         break
     elif [ "$line" = 'status' ]
     then
-        server_status "$NUM_CORES" "${job_status[@]}"
+        server_status "$NUM_JOBS"
 
     else
         echo "Command on server: $line"
         echo $line > ${FIFO_P}.$core
-        #${job_status[$core]}=$(( ${job_status[$core]} + 1 ))
-        # echo "JOB $core: ${job_status[$core]}"
+        NUM_JOBS=$(( $NUM_JOBS + 1))
         core=$(( $core + 1 ))
         if [ $core -eq ${NUM_CORES} ]; then
             core='0'
