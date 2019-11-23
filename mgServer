@@ -87,6 +87,8 @@ do
     if [ ! -p ${FIFO_P}.$core ]; then
         mkfifo ${FIFO_P}.$core
         echo "fifo.$core created"
+    else
+        echo "pipe $core exists"
     fi
     umask 0077 ${FIFO_P}.$core
     (exec  sh mgProcessor ${FIFO_P}.$core ${LOG_P}.$core $core &)
