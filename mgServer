@@ -2,6 +2,7 @@
 
 # set up some globals
 FIFO_S="/tmp/server-${USER}-fifo"
+SOCK_S="/tmp/server-${USER}-sock"
 FIFO_P="/tmp/processor-${USER}-fifo"
 LOG_P="/tmp/processor-${USER}.log"
 NUM_CORES='0'
@@ -59,9 +60,10 @@ then
     exit -1
 fi
 
+# get operating system
 OS=$(eval uname)
 
-# calculate default number of processors if variable is unset ( -n )
+# calculate default number of processors if variable is unset ( -n ) based on OS
 if [ ${NUM_CORES} -eq "0" ]; then
     if [ "$OS" = "Darwin" ]; then
         NUM_CORES=$(eval sysctl -n hw.ncpu)
@@ -90,6 +92,9 @@ do
     (exec  sh mgProcessor ${FIFO_P}.$core ${LOG_P}.$core $core &)
     core=$(( $core + 1 ))
 done
+
+# creates the socket process in the background
+# ${SOCK_S}
 
 # create the server FIFO (if not already created) that the server will read from
 if [ ! -p ${FIFO_S} ]; then
