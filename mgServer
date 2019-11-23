@@ -140,6 +140,7 @@ done
 
 if [ ${shutdown} -eq "0" ]; then
     stop_processors "$NUM_CORES"
+    echo "Error: Server crashed."
 fi
 #
 echo "Server exiting..."
