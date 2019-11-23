@@ -120,7 +120,7 @@ do
     if [ "$line" = 'shutdown' ]
     then
         # leave the while loop
-        shutdown=1
+        stop_processors "$NUM_CORES"
         break
     elif [ "$line" = 'status' ]
     then
@@ -137,9 +137,5 @@ do
 
 done
 
-if [ ${shutdown} -eq "0" ]; then
-    stop_processors "$NUM_CORES"
-    echo "Error: Server crashed."
-fi
 #
 echo "Server exiting..."
