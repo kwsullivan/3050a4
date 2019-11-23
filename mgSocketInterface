@@ -34,7 +34,7 @@ except OSError, msg:
     print >> sys.stderr, "Error binding stream socket:", msg
     sys.exit(1)
 
-print "Socket has name", FILE_ADDRESS
+#print "Socket has name", FILE_ADDRESS
 
 sock.listen(5)
 
@@ -60,15 +60,17 @@ while keepGoing:
             sys.exit(1)
 
         if message:
-            sys.stdout.write("got -->%s\n" % message)
-            cmd = "echo {} > {}".format(message, FIFO_NAME)
-            print "{}".format(cmd)
-            os.system(cmd)
-            # process = subprocess.Popen(message, stdout=FIFO_NAME)
-            # output, error = process.communicate()
-
-            if message == "quit":
+            if message == "quit_sock":
                 keepGoing = False
+                break
+            else:
+                # sys.stdout.write("got -->%s\n" % message)
+                cmd = "echo {} > {}".format(message, FIFO_NAME)
+                print "{}".format(cmd)
+                os.system(cmd)
+                # process = subprocess.Popen(message, stdout=FIFO_NAME)
+                # output, error = process.communicate()
+
         else:
             pass
 
@@ -76,9 +78,8 @@ while keepGoing:
     # close the message socket and go back to waiting on the stream socket
     msgsock.close()
 
-print "Told to quit, so cleaning up..."
 sock.close()
 
 os.unlink(FILE_ADDRESS)
-
+print "SOCKET : {} OFFLINE.".format(FILE_ADDRESS)
 sys.exit(0)

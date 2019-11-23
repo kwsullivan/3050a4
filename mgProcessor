@@ -13,7 +13,7 @@ while read line < $fifo
 do
     if [ "$line" = 'quit' ]
     then
-        echo "Processor $core exiting..."
+        echo "PROCESSOR : $fifo OFFLINE."
         # leave the while loop
         break
     else

@@ -7,10 +7,12 @@ FIFO_P="/tmp/processor-${USER}-fifo"
 LOG_P="/tmp/processor-${USER}.log"
 NUM_CORES='0'
 NUM_JOBS='0'
-# shutdown each processor on the server
-stop_processors() {
+# shutdown each processor and the socket on the server
+stop_background() {
     curr_core='0'
     num_cores=$1
+    
+    python mgSubmitJob "quit_sock"
     while [ $curr_core -lt "$num_cores" ]
     do
         (echo "quit" > ${FIFO_P}.$curr_core)
@@ -75,7 +77,7 @@ if [ ${NUM_CORES} -eq "0" ]; then
 fi
 
 # exits gracefully when ^C is entered
-trap 'stop_processors "${NUM_CORES}"' INT
+trap 'stop_background "${NUM_CORES}"' INT
 
 # startup message
 echo "Starting up ${NUM_CORES} processing units"
@@ -88,7 +90,7 @@ do
         mkfifo ${FIFO_P}.$core
         echo "${FIFO_P}.$core created"
     else
-        echo "${FIFO_P}.$core ready"
+        echo "${FIFO_P}.$core ready..."
     fi
     umask 0077 ${FIFO_P}.$core
     (exec  sh mgProcessor ${FIFO_P}.$core ${LOG_P}.$core $core &)
@@ -96,8 +98,8 @@ do
 done
 
 # creates the socket process in the background
- #(exec python mgSocketInterface ${FIFO_S} &)
-
+(exec python mgSocketInterface ${FIFO_S} &)
+echo "${SOCK_S} ready..."
 # create the server FIFO (if not already created) that the server will read from
 if [ ! -p ${FIFO_S} ]; then
     if
@@ -120,7 +122,7 @@ do
     if [ "$line" = 'shutdown' ]
     then
         # leave the while loop
-        stop_processors "$NUM_CORES"
+        stop_background "$NUM_CORES"
         break
     elif [ "$line" = 'status' ]
     then
@@ -138,4 +140,4 @@ do
 done
 
 #
-echo "Server exiting..."
+echo "SERVER OFFLINE."
