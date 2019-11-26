@@ -218,7 +218,7 @@ fi
 
 # checks number of server processes still running
 # (should be 1 because the ps command counts)
-PROCESS_COUNT=$(echo `ps | grep mgProcessor | wc -l`)
+PROCESS_COUNT=$(echo `ps aux | grep ${FIFO_P}.* | wc -l`)
 if [ "$PROCESS_COUNT" -eq "1" ]; then
     output "OK" "Processors successfully terminated."
 else
@@ -226,7 +226,7 @@ else
 fi
 # checks number of server processes still running
 # (should be 1 because the ps command counts)
-SERVER_COUNT=$(echo `ps | grep mgServer | wc -l`)
+SERVER_COUNT=$(echo `ps aux | grep ${FIFO_S} | wc -l`)
 if [ "$SERVER_COUNT" -eq "1" ]; then
     output "OK" "Server successfully terminated."
 else
