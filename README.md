@@ -10,3 +10,8 @@
 ### Processor FIFO(s) created
 
 ### Socket created
+
+## FIFO Commands
+
+### ls -l
+

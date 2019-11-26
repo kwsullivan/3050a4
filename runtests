@@ -8,63 +8,149 @@ LOG_P="/tmp/processor-${USER}.log"
 
 # testing paths
 OUT_T="./testing/output/"
-OUT_E="./testing/expect/"
+LOG_S="./logs/server.log"
 
-NUM_CORES:=
+SLEEP=0.1
 
+
+# get number of processors and colour codes based on OS (Darwin/Linux)
 OS=$(eval uname)
 if [ "$OS" = "Darwin" ]; then
-	NUM_CORES=$(eval sysctl -n hw.ncpu)
+    NUM_CORES=$(eval sysctl -n hw.ncpu)
+    NO_COLOUR="\x1b[0m"
+    OK_COLOUR="\x1b[102;01m"
+    ERROR_COLOUR="\x1b[101;01m"
+    HEADER_COLOUR="\x1b[1;4;46m"
+    TITLE_COLOUR="\x1b[47;01m"
+    BLUE_COLOUR="\x1b[104m"
 elif [ "$OS" = "Linux" ]; then
-	NUM_CORES=$(eval nproc)
+    NUM_CORES=$(eval nproc)
+    NO_COLOUR="\e[0m"
+    OK_COLOUR="\e[32m"
+    ERROR_COLOUR="\e[31m"
+    HEADER_COLOUR="\e[1;4m"
+    TITLE_COLOUR="\e[47;02m"
+    BLUE_COLOUR="\e[44m"
 else
-	NUM_CORES='0'
+    NUM_CORES='0'
+
 fi
 
-echo ${NUM_CORES}
+output() {
+    TYPE=$1
+    MSG=$2
+    if [ X"$TYPE" = X"OK" ]
+    then
+        echo ${OK_COLOUR}"${MSG}"${NO_COLOUR}
+    fi
+    if [ X"$TYPE" = X"ERROR" ]
+    then
+        echo ${ERROR_COLOUR}"${MSG}"${NO_COLOUR}
+    fi
+    if [ X"$TYPE" = X"HEADER" ]
+    then
+        echo ${HEADER_COLOUR}"${MSG}"${NO_COLOUR}
+    fi
+    if [ X"$TYPE" = X"TITLE" ]
+    then
+        echo ${TITLE_COLOUR}"${MSG}"${NO_COLOUR}
+    fi
+}
 
-for i in $(eval ls /tmp | grep processor-${USER}-fifo.*)
-do
-	echo "Loop variable is now '${i}'"
-done
+# remove
 
-$(eval ./mgServer &)
-
-# Checks the existence of a pipe/socket (determined by TYPE) and stores the output in a file
+# checks the existence of a pipe/socket (determined by TYPE) and stores the output in a file
 check_exists() {
-	TYPE=$1
-	FLAG=$2
-	FILE=$3
-	OUTPUT_FILE=$4
+    TYPE=$1
+    FLAG=$2
+    FILE=$3
 
-	if [ ${FLAG} ${FILE} ]; then
-		echo OK: ${TYPE} found. >> ${OUTPUT_FILE}
-	else
-		echo ERROR: ${TYPE} not found. >> ${OUTPUT_FILE}
-	fi
+    if [ ${FLAG} ${FILE} ]; then
+        output "OK" "OK : ${TYPE} found."
+    else
+        output "ERROR" "ERROR : ${TYPE} not found."
+    fi
 }
 
 check_commandFIFO() {
-	COMMAND=$(echo `$1`)
-	LOG=$(echo `cat $2`)
-	OUTPUT_FILE=$3
-	if [[ "$LOG" == *"$COMMAND"* ]]; then
-		echo "The command $1 succeeded in ${2}." > ${OUTPUT_FILE}
-	else
-		echo "The command $1 failed in ${2}." > ${OUTPUT_FILE}
-	fi
+    COMMAND=$(echo `$1`)
+    LOG=$(echo `cat $2`)
+    OUTPUT_FILE=$3
+    if [[ "$LOG" == *"$COMMAND"* ]]; then
+        output "OK" "OK : The command $1 succeeded in ${2}."
+    else
+        output "ERROR" "ERROR : The command $1 failed in ${2}."
+    fi
+}
+
+check_status() {
+    EXPECTED_JOBS=$1
+    SERVER_LOG=$(echo `cat $2`)
+    EXPECTED_STATUS="Jobs Completed : ${EXPECTED_JOBS}"
+    if [[ "$SERVER_LOG" == *"$EXPECTED_JOBS"* ]]; then
+        output "OK" "OK : Server status reported ${EXPECTED_JOBS} jobs."
+    else
+        output "ERROR" "ERROR : Server status did not report ${EXPECTED_JOBS} jobs."
+    fi
 }
 
 # Setup tests
-
-check_exists "SERVER" "-p" "${FIFO_S}" "${OUT_T}check_server"
+output "HEADER" "Beginning setup tests..."
+output "TITLE" "TEST : creating all fifos and socket"
+check_exists "SERVER" "-p" "${FIFO_S}"
 core=0
 while [ $core -lt ${NUM_CORES} ]
 do
-	check_exists "PROCESSOR" "-p" "${FIFO_P}.$core" "${OUT_T}check_processor.$core"
-	core=$(( $core + 1 ))
+    check_exists "PROCESSOR" "-p" "${FIFO_P}.$core"
+    core=$(( $core + 1 ))
 done
 
-check_exists "SOCKET" "-S" "${SOCK_S}" "${OUT_T}check_socket"
+check_exists "SOCKET" "-S" "${SOCK_S}"
 
-check_commandFIFO "ls" "/tmp/processor-kevinsullivan.log.0" "${OUT_T}test_command"
+echo "----------"
+
+# FIFO Command Tests
+output "HEADER" "Beginning FIFO and status tests..."
+
+# test ls command on all processors
+output "TITLE" "TEST : ls command on all processors"
+core=0
+while [ $core -lt ${NUM_CORES} ]
+do
+    echo ls > ${FIFO_S}
+    sleep ${SLEEP}
+    check_commandFIFO "ls" "${LOG_P}.$core" "${OUT_T}test_command.$core"
+    core=$(( $core + 1 ))
+done
+
+echo "----------"
+
+# test status command after all processors used once
+output "TITLE" "TEST : status command after n jobs where n=number of processors"
+echo status > ${FIFO_S}
+check_status "${NUM_CORES}" "${OUT_T}server.log"
+echo "----------"
+
+# test pwd command on all processors
+output "TITLE" "TEST : pwd command on all processors"
+core=0
+while [ $core -lt ${NUM_CORES} ]
+do
+    echo pwd > ${FIFO_S}
+    sleep ${SLEEP}
+    check_commandFIFO "pwd" "${LOG_P}.$core" "${LOG_S}"
+    core=$(( $core + 1 ))
+done
+echo "----------"
+
+# test status command after all processors used twice
+output "TITLE" "TEST : status command after 2n jobs where n=number of processors"
+echo status > ${FIFO_S}
+check_status "$((${NUM_CORES} + ${NUM_CORES}))" "${LOG_S}"
+echo "----------"
+
+output "HEADER" "Beginning socket tests..."
+
+output "TITLE" "TEST : command on all processors using the socket"
+
+python mgSubmitJob echo ls -l

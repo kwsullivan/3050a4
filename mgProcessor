@@ -17,7 +17,7 @@ do
         # leave the while loop
         break
     else
-        echo "Command on $fifo: $line"
+        # echo "Command on $fifo: $line"
         (exec echo "`date`" >> $log)
         (exec echo "PID : $core" >> $log)
         (exec echo "COMMAND : $line" >> $log)
