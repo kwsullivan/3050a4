@@ -76,7 +76,7 @@ check_commandFIFO() {
     COMMAND=$(echo `$1`)
     LOG=$(echo `cat $2`)
     OUTPUT_FILE=$3
-    if [[ "$LOG" == *"$COMMAND"* ]]; then
+    if [ "$LOG" == *"$COMMAND"* ]; then
         output "OK" "The command $1 succeeded in ${2}."
     else
         output "ERROR" "The command $1 failed in ${2}."
@@ -87,7 +87,7 @@ check_status() {
     EXPECTED_JOBS=$1
     SERVER_LOG=$(echo `cat $2`)
     EXPECTED_STATUS="Jobs Completed : ${EXPECTED_JOBS}"
-    if [[ "$SERVER_LOG" == *"$EXPECTED_JOBS"* ]]; then
+    if [ "$SERVER_LOG" == *"$EXPECTED_JOBS"* ]; then
         output "OK" "Server status reported ${EXPECTED_JOBS} jobs."
     else
         output "ERROR" "Server status did not report ${EXPECTED_JOBS} jobs."
