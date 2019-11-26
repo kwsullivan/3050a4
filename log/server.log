@@ -29,3 +29,9 @@ Command on server: sh timedCountdown
 Command on server: sh timedCountdown
 Command on server: sh timedCountdown
 Command on server: sh timedCountdown
+SOCKET : /tmp/server-kevinsullivan-sock OFFLINE.
+PROCESSOR : /tmp/processor-kevinsullivan-fifo.0 OFFLINE.
+PROCESSOR : /tmp/processor-kevinsullivan-fifo.1 OFFLINE.
+PROCESSOR : /tmp/processor-kevinsullivan-fifo.2 OFFLINE.
+PROCESSOR : /tmp/processor-kevinsullivan-fifo.3 OFFLINE.
+SERVER OFFLINE.

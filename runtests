@@ -206,8 +206,7 @@ echo "----------"
 output "TITLE" "TEST : shutdown to kill all processes, the socket, and the server"
 echo "This will take approximately $num_sleep seconds..."
 sleep ${num_sleep}
-$(python mgSubmitJob "shutdown")
-sleep ${SLEEP}
+python mgSubmitJob "shutdown"
 
 # checks the existance of the socket to see if it closed successfully
 if [ ! -S ${SOCK_S} ]; then
