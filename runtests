@@ -8,7 +8,7 @@ LOG_P="/tmp/processor-${USER}.log"
 
 # testing paths
 OUT_T="./testing/output/"
-LOG_S="./logs/server.log"
+LOG_S="./log/server.log"
 
 SLEEP=0.1
 
@@ -33,19 +33,19 @@ elif [ "$OS" = "Linux" ]; then
     BLUE_COLOUR="\e[44m"
 else
     NUM_CORES='0'
-
 fi
 
+# outputs testing text formatted to colour codes
 output() {
     TYPE=$1
     MSG=$2
     if [ X"$TYPE" = X"OK" ]
     then
-        echo ${OK_COLOUR}"${MSG}"${NO_COLOUR}
+        echo ${OK_COLOUR}"OK : ${MSG}"${NO_COLOUR}
     fi
     if [ X"$TYPE" = X"ERROR" ]
     then
-        echo ${ERROR_COLOUR}"${MSG}"${NO_COLOUR}
+        echo ${ERROR_COLOUR}"ERROR : ${MSG}"${NO_COLOUR}
     fi
     if [ X"$TYPE" = X"HEADER" ]
     then
@@ -66,9 +66,9 @@ check_exists() {
     FILE=$3
 
     if [ ${FLAG} ${FILE} ]; then
-        output "OK" "OK : ${TYPE} found."
+        output "OK" "${TYPE} found."
     else
-        output "ERROR" "ERROR : ${TYPE} not found."
+        output "ERROR" "${TYPE} not found."
     fi
 }
 
@@ -77,9 +77,9 @@ check_commandFIFO() {
     LOG=$(echo `cat $2`)
     OUTPUT_FILE=$3
     if [[ "$LOG" == *"$COMMAND"* ]]; then
-        output "OK" "OK : The command $1 succeeded in ${2}."
+        output "OK" "The command $1 succeeded in ${2}."
     else
-        output "ERROR" "ERROR : The command $1 failed in ${2}."
+        output "ERROR" "The command $1 failed in ${2}."
     fi
 }
 
@@ -88,11 +88,22 @@ check_status() {
     SERVER_LOG=$(echo `cat $2`)
     EXPECTED_STATUS="Jobs Completed : ${EXPECTED_JOBS}"
     if [[ "$SERVER_LOG" == *"$EXPECTED_JOBS"* ]]; then
-        output "OK" "OK : Server status reported ${EXPECTED_JOBS} jobs."
+        output "OK" "Server status reported ${EXPECTED_JOBS} jobs."
     else
-        output "ERROR" "ERROR : Server status did not report ${EXPECTED_JOBS} jobs."
+        output "ERROR" "Server status did not report ${EXPECTED_JOBS} jobs."
     fi
 }
+
+# makes sure there are more than 0 cores running
+
+output "TITLE" "TEST : detecting processing cores"
+if [ ! ${NUM_CORES} -eq "0" ]; then
+    output "OK" "${NUM_CORES} detected."
+else
+    output "ERROR" "${NUM_CORES} detected."
+    echo "Testing cannot continue as there are no detected processors."
+    exit
+fi
 
 # Setup tests
 output "HEADER" "Beginning setup tests..."
@@ -128,7 +139,8 @@ echo "----------"
 # test status command after all processors used once
 output "TITLE" "TEST : status command after n jobs where n=number of processors"
 echo status > ${FIFO_S}
-check_status "${NUM_CORES}" "${OUT_T}server.log"
+sleep ${SLEEP}
+check_status "${NUM_CORES}" "${LOG_S}"
 echo "----------"
 
 # test pwd command on all processors
@@ -146,11 +158,79 @@ echo "----------"
 # test status command after all processors used twice
 output "TITLE" "TEST : status command after 2n jobs where n=number of processors"
 echo status > ${FIFO_S}
+sleep ${SLEEP}
 check_status "$((${NUM_CORES} + ${NUM_CORES}))" "${LOG_S}"
 echo "----------"
 
 output "HEADER" "Beginning socket tests..."
 
-output "TITLE" "TEST : command on all processors using the socket"
+output "TITLE" "TEST : command ls -l on all processors using the socket"
 
-python mgSubmitJob echo ls -l
+
+core=0
+while [ $core -lt ${NUM_CORES} ]
+do
+    $(python mgSubmitJob "ls -l")
+    sleep ${SLEEP}
+    check_commandFIFO "ls -l" "${LOG_P}.$core" "${LOG_S}"
+    core=$(( $core + 1 ))
+done
+echo "----------"
+
+core=0
+counter=0
+max=$(( ${NUM_CORES} + 2))
+num_sleep=$(( $max * 2))
+output "TITLE" "TEST : timedCountdown to execute $max times using the socket"
+echo "This will take approximately $num_sleep seconds..."
+while [ $counter -lt $max ]
+do
+    $(python mgSubmitJob "sh timedCountdown")
+
+    core=$(( $core + 1 ))
+    counter=$(( $counter + 1 ))
+    if [ $core -eq ${NUM_CORES} ]; then
+        core='0'
+    fi
+done
+sleep ${num_sleep}
+NUM_EXECS=$(grep -c "sh timedCountdown" ${LOG_S})
+
+if [ $NUM_EXECS -eq $max ]; then
+    output "OK" "timedCountdown successfully executed $max times."
+else
+    output "ERROR" "timedCountdown failed to execute $max times."
+fi
+echo "----------"
+
+output "TITLE" "TEST : shutdown to kill all processes, the socket, and the server"
+echo "This will take approximately $num_sleep seconds..."
+sleep ${num_sleep}
+$(python mgSubmitJob "shutdown")
+sleep ${SLEEP}
+
+# checks the existance of the socket to see if it closed successfully
+if [ ! -S ${SOCK_S} ]; then
+    output "OK" "Socket successfully closed."
+else
+    output "ERROR" "Socket did not close."
+fi
+
+# checks number of server processes still running
+# (should be 1 because the ps command counts)
+PROCESS_COUNT=$(echo `ps | grep mgProcessor | wc -l`)
+if [ "$PROCESS_COUNT" -eq "1" ]; then
+    output "OK" "Processors successfully terminated."
+else
+    output "ERROR" "Processors did not terminate."
+fi
+# checks number of server processes still running
+# (should be 1 because the ps command counts)
+SERVER_COUNT=$(echo `ps | grep mgServer | wc -l`)
+if [ "$SERVER_COUNT" -eq "1" ]; then
+    output "OK" "Server successfully terminated."
+else
+    output "ERROR" "Server did not terminate."
+fi
+
+output "HEADER" "Testing completed."
