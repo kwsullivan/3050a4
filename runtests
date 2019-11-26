@@ -1,0 +1,70 @@
+#!/bin/sh
+
+# fifo/sock paths
+FIFO_S="/tmp/server-${USER}-fifo"
+SOCK_S="/tmp/server-${USER}-sock"
+FIFO_P="/tmp/processor-${USER}-fifo"
+LOG_P="/tmp/processor-${USER}.log"
+
+# testing paths
+OUT_T="./testing/output/"
+OUT_E="./testing/expect/"
+
+NUM_CORES:=
+
+OS=$(eval uname)
+if [ "$OS" = "Darwin" ]; then
+	NUM_CORES=$(eval sysctl -n hw.ncpu)
+elif [ "$OS" = "Linux" ]; then
+	NUM_CORES=$(eval nproc)
+else
+	NUM_CORES='0'
+fi
+
+echo ${NUM_CORES}
+
+for i in $(eval ls /tmp | grep processor-${USER}-fifo.*)
+do
+	echo "Loop variable is now '${i}'"
+done
+
+$(eval ./mgServer &)
+
+# Checks the existence of a pipe/socket (determined by TYPE) and stores the output in a file
+check_exists() {
+	TYPE=$1
+	FLAG=$2
+	FILE=$3
+	OUTPUT_FILE=$4
+
+	if [ ${FLAG} ${FILE} ]; then
+		echo OK: ${TYPE} found. >> ${OUTPUT_FILE}
+	else
+		echo ERROR: ${TYPE} not found. >> ${OUTPUT_FILE}
+	fi
+}
+
+check_commandFIFO() {
+	COMMAND=$(echo `$1`)
+	LOG=$(echo `cat $2`)
+	OUTPUT_FILE=$3
+	if [[ "$LOG" == *"$COMMAND"* ]]; then
+		echo "The command $1 succeeded in ${2}." > ${OUTPUT_FILE}
+	else
+		echo "The command $1 failed in ${2}." > ${OUTPUT_FILE}
+	fi
+}
+
+# Setup tests
+
+check_exists "SERVER" "-p" "${FIFO_S}" "${OUT_T}check_server"
+core=0
+while [ $core -lt ${NUM_CORES} ]
+do
+	check_exists "PROCESSOR" "-p" "${FIFO_P}.$core" "${OUT_T}check_processor.$core"
+	core=$(( $core + 1 ))
+done
+
+check_exists "SOCKET" "-S" "${SOCK_S}" "${OUT_T}check_socket"
+
+check_commandFIFO "ls" "/tmp/processor-kevinsullivan.log.0" "${OUT_T}test_command"

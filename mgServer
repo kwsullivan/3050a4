@@ -7,11 +7,12 @@ FIFO_P="/tmp/processor-${USER}-fifo"
 LOG_P="/tmp/processor-${USER}.log"
 NUM_CORES='0'
 NUM_JOBS='0'
+
 # shutdown each processor and the socket on the server
 stop_background() {
     curr_core='0'
     num_cores=$1
-    
+
     python mgSubmitJob "quit_sock"
     while [ $curr_core -lt "$num_cores" ]
     do
@@ -100,6 +101,7 @@ done
 # creates the socket process in the background
 (exec python mgSocketInterface ${FIFO_S} &)
 echo "${SOCK_S} ready..."
+
 # create the server FIFO (if not already created) that the server will read from
 if [ ! -p ${FIFO_S} ]; then
     if
@@ -139,5 +141,7 @@ do
 
 done
 
+# wait for processors to exit before server
+wait
 #
 echo "SERVER OFFLINE."
