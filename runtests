@@ -74,11 +74,7 @@ check_exists() {
 check_commandFIFO() {
     COMMAND=$1
     SERVER_LOG=$(echo `cat $2`)
-    OUTPUT_FILE=$3
-    # OUT=$(echo "$LOG" | grep "penis" | wc -l)
-    # echo ${OUT}
     LINE="Command on server: ${COMMAND}"
-    echo $LINE
     if [ $(echo "$SERVER_LOG" | grep "$LINE" | wc -l) -eq "1" ]; then
         output "OK" "The command $1 succeeded in ${2}."
     else
