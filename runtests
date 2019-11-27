@@ -72,12 +72,14 @@ check_exists() {
 }
 
 check_commandFIFO() {
-    COMMAND=$(echo `$1`)
-    LOG=$(echo `cat $2`)
+    COMMAND=$1
+    SERVER_LOG=$(echo `cat $2`)
     OUTPUT_FILE=$3
     # OUT=$(echo "$LOG" | grep "penis" | wc -l)
     # echo ${OUT}
-    if [ $(echo "$LOG" | grep "$COMMAND" | wc -l) -eq "1" ]; then
+    LINE="Command on server: ${COMMAND}"
+    echo $LINE
+    if [ $(echo "$SERVER_LOG" | grep "$LINE" | wc -l) -eq "1" ]; then
         output "OK" "The command $1 succeeded in ${2}."
     else
         output "ERROR" "The command $1 failed in ${2}."
@@ -122,6 +124,7 @@ do
     core=$(( $core + 1 ))
 done
 sleep ${SLEEP}
+sleep ${SLEEP}
 check_exists "SOCKET" "-S" "${SOCK_S}"
 
 echo "----------"
@@ -134,9 +137,9 @@ output "TITLE" "TEST : ls command on all processors"
 core=0
 while [ $core -lt ${NUM_CORES} ]
 do
-    echo pwd > ${FIFO_S}
+    echo ls > ${FIFO_S}
     sleep ${SLEEP}
-    check_commandFIFO "pwd" "${LOG_P}.$core" "${OUT_T}test_command.$core"
+    check_commandFIFO "ls" "${LOG_S}" 
     core=$(( $core + 1 ))
 done
 
@@ -156,7 +159,7 @@ while [ $core -lt ${NUM_CORES} ]
 do
     echo pwd > ${FIFO_S}
     sleep ${SLEEP}
-    check_commandFIFO "pwd" "${LOG_P}.$core" "${LOG_S}"
+    check_commandFIFO "pwd" "${LOG_S}"
     core=$(( $core + 1 ))
 done
 echo "----------"
@@ -170,7 +173,7 @@ echo "----------"
 
 output "HEADER" "Beginning socket tests..."
 
-output "TITLE" "TEST : command echo \"this is a sentence\" on all processors using the socket"
+output "TITLE" "TEST : command ls -l on all processors using the socket"
 
 
 core=0
@@ -179,7 +182,7 @@ do
     $(python mgSubmitJob "ls -l")
     sleep ${SLEEP}
     sleep ${SLEEP}
-    check_commandFIFO "ls -l" "${LOG_P}.$core" "${LOG_S}"
+    check_commandFIFO "ls -l" "${LOG_S}"
     core=$(( $core + 1 ))
 done
 echo "----------"
@@ -216,3 +219,4 @@ sleep ${SLEEP}
 python mgSubmitJob "shutdown"
 
 output "HEADER" "Testing completed."
+echo "Compare output of log files with test cases for more detail."

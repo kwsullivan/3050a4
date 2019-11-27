@@ -5,19 +5,23 @@ Starting up 4 processing units
 /tmp/processor-kevinsullivan-fifo.3 ready...
 /tmp/server-kevinsullivan-sock ready...
 Ready for processing : place jobs into /tmp/server-kevinsullivan-fifo
-Command on server: pwd
-Command on server: pwd
-Command on server: pwd
-Command on server: pwd
+Command on server: ls
+Command on server: ls
+Command on server: ls
+Command on server: ls
+Command on server: ls
+Command on server: ls
+Command on server: ls
+Command on server: ls
 ----- Server Status -----
-Jobs Completed : 4
+Jobs Completed : 8
 -------------------------
 Command on server: pwd
 Command on server: pwd
 Command on server: pwd
 Command on server: pwd
 ----- Server Status -----
-Jobs Completed : 8
+Jobs Completed : 12
 -------------------------
 Command on server: ls -l
 Command on server: ls -l
