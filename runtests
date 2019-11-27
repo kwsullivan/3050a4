@@ -10,8 +10,7 @@ LOG_P="/tmp/processor-${USER}.log"
 OUT_T="./testing/output/"
 LOG_S="./log/server.log"
 
-SLEEP=0.1
-
+SLEEP=1
 
 # get number of processors and colour codes based on OS (Darwin/Linux)
 OS=$(eval uname)
@@ -76,18 +75,25 @@ check_commandFIFO() {
     COMMAND=$(echo `$1`)
     LOG=$(echo `cat $2`)
     OUTPUT_FILE=$3
-    if [[ "$LOG" =~ "$COMMAND" ]]; then
+    # OUT=$(echo "$LOG" | grep "penis" | wc -l)
+    # echo ${OUT}
+    if [ $(echo "$LOG" | grep "$COMMAND" | wc -l) -eq "1" ]; then
         output "OK" "The command $1 succeeded in ${2}."
     else
         output "ERROR" "The command $1 failed in ${2}."
     fi
+    # if [[ "$LOG" =~ "$COMMAND" ]]; then
+    #     output "OK" "The command $1 succeeded in ${2}."
+    # else
+    #     output "ERROR" "The command $1 failed in ${2}."
+    # fi
 }
 
 check_status() {
     EXPECTED_JOBS=$1
     SERVER_LOG=$(echo `cat $2`)
     EXPECTED_STATUS="Jobs Completed : ${EXPECTED_JOBS}"
-    if [[ "$SERVER_LOG" =~ "$EXPECTED_JOBS" ]]; then
+    if [ $(echo "$SERVER_LOG" | grep "$EXPECTED_JOBS" | wc -l) -eq "1" ]; then
         output "OK" "Server status reported ${EXPECTED_JOBS} jobs."
     else
         output "ERROR" "Server status did not report ${EXPECTED_JOBS} jobs."
@@ -115,7 +121,7 @@ do
     check_exists "PROCESSOR" "-p" "${FIFO_P}.$core"
     core=$(( $core + 1 ))
 done
-
+sleep ${SLEEP}
 check_exists "SOCKET" "-S" "${SOCK_S}"
 
 echo "----------"
@@ -128,9 +134,9 @@ output "TITLE" "TEST : ls command on all processors"
 core=0
 while [ $core -lt ${NUM_CORES} ]
 do
-    echo ls > ${FIFO_S}
+    echo pwd > ${FIFO_S}
     sleep ${SLEEP}
-    check_commandFIFO "ls" "${LOG_P}.$core" "${OUT_T}test_command.$core"
+    check_commandFIFO "pwd" "${LOG_P}.$core" "${OUT_T}test_command.$core"
     core=$(( $core + 1 ))
 done
 
@@ -164,13 +170,14 @@ echo "----------"
 
 output "HEADER" "Beginning socket tests..."
 
-output "TITLE" "TEST : command ls -l on all processors using the socket"
+output "TITLE" "TEST : command echo \"this is a sentence\" on all processors using the socket"
 
 
 core=0
 while [ $core -lt ${NUM_CORES} ]
 do
     $(python mgSubmitJob "ls -l")
+    sleep ${SLEEP}
     sleep ${SLEEP}
     check_commandFIFO "ls -l" "${LOG_P}.$core" "${LOG_S}"
     core=$(( $core + 1 ))
@@ -180,7 +187,7 @@ echo "----------"
 core=0
 counter=0
 max=$(( ${NUM_CORES} + 2))
-num_sleep=$(( $max * 2))
+num_sleep=20
 output "TITLE" "TEST : timedCountdown to execute $max times using the socket"
 echo "This will take approximately $num_sleep seconds..."
 while [ $counter -lt $max ]
@@ -203,33 +210,9 @@ else
 fi
 echo "----------"
 
-output "TITLE" "TEST : shutdown to kill all processes, the socket, and the server"
-echo "This will take approximately $num_sleep seconds..."
-sleep ${num_sleep}
+output "OK" "shutting down by killing all processors, the socket, and the server"
+
+sleep ${SLEEP}
 python mgSubmitJob "shutdown"
-
-# checks the existance of the socket to see if it closed successfully
-if [ ! -S ${SOCK_S} ]; then
-    output "OK" "Socket successfully closed."
-else
-    output "ERROR" "Socket did not close."
-fi
-
-# checks number of server processes still running
-# (should be 1 because the ps command counts)
-PROCESS_COUNT=$(echo `ps aux | grep ${FIFO_P}.* | wc -l`)
-if [ "$PROCESS_COUNT" -eq "1" ]; then
-    output "OK" "Processors successfully terminated."
-else
-    output "ERROR" "Processors did not terminate."
-fi
-# checks number of server processes still running
-# (should be 1 because the ps command counts)
-SERVER_COUNT=$(echo `ps aux | grep ${FIFO_S} | wc -l`)
-if [ "$SERVER_COUNT" -eq "1" ]; then
-    output "OK" "Server successfully terminated."
-else
-    output "ERROR" "Server did not terminate."
-fi
 
 output "HEADER" "Testing completed."
