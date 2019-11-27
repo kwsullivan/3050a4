@@ -84,11 +84,6 @@ check_commandFIFO() {
     else
         output "ERROR" "The command $1 failed in ${2}."
     fi
-    # if [[ "$LOG" =~ "$COMMAND" ]]; then
-    #     output "OK" "The command $1 succeeded in ${2}."
-    # else
-    #     output "ERROR" "The command $1 failed in ${2}."
-    # fi
 }
 
 check_status() {
@@ -211,6 +206,13 @@ if [ $NUM_EXECS -eq $max ]; then
 else
     output "ERROR" "timedCountdown failed to execute $max times."
 fi
+echo "----------"
+
+# test status command after all processors used once
+output "TITLE" "TEST : status command after all scheduled jobs"
+echo status > ${FIFO_S}
+sleep ${SLEEP}
+check_status "$((${NUM_CORES} * 3 + $max))" "${LOG_S}"
 echo "----------"
 
 output "OK" "shutting down by killing all processors, the socket, and the server"

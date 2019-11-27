@@ -9,30 +9,29 @@ Command on server: ls
 Command on server: ls
 Command on server: ls
 Command on server: ls
-Command on server: ls
-Command on server: ls
-Command on server: ls
-Command on server: ls
+----- Server Status -----
+Jobs Completed : 4
+-------------------------
+Command on server: pwd
+Command on server: pwd
+Command on server: pwd
+Command on server: pwd
 ----- Server Status -----
 Jobs Completed : 8
 -------------------------
-Command on server: pwd
-Command on server: pwd
-Command on server: pwd
-Command on server: pwd
+Command on server: ls -l
+Command on server: ls -l
+Command on server: ls -l
+Command on server: ls -l
+Command on server: sh timedCountdown
+Command on server: sh timedCountdown
+Command on server: sh timedCountdown
+Command on server: sh timedCountdown
+Command on server: sh timedCountdown
+Command on server: sh timedCountdown
 ----- Server Status -----
-Jobs Completed : 12
+Jobs Completed : 18
 -------------------------
-Command on server: ls -l
-Command on server: ls -l
-Command on server: ls -l
-Command on server: ls -l
-Command on server: sh timedCountdown
-Command on server: sh timedCountdown
-Command on server: sh timedCountdown
-Command on server: sh timedCountdown
-Command on server: sh timedCountdown
-Command on server: sh timedCountdown
 SOCKET : /tmp/server-kevinsullivan-sock OFFLINE.
 PROCESSOR : /tmp/processor-kevinsullivan-fifo.0 OFFLINE.
 PROCESSOR : /tmp/processor-kevinsullivan-fifo.1 OFFLINE.
