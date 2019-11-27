@@ -26,3 +26,5 @@ do
         (exec echo "----------" >> $log)
     fi
 done
+
+rm $fifo

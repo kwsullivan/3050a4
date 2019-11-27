@@ -15,6 +15,8 @@ Terminal 2: `./runtests`
 
 **Note: If the test says a socket was not created, please repeat the above step.**
 
+**Note: If an 'address already in use' error appears, delete the socket in /tmp/.**
+
 ## Cores
 Tests for the existence of processing cores.
 

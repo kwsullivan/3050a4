@@ -7,16 +7,16 @@ FIFO_P="/tmp/processor-${USER}-fifo"
 LOG_P="/tmp/processor-${USER}.log"
 NUM_CORES='0'
 NUM_JOBS='0'
-
+shutdown=0
 # shutdown each processor and the socket on the server
 stop_background() {
     curr_core='0'
     num_cores=$1
-
+    shutdown=1
     python mgSubmitJob "quit_sock"
     while [ $curr_core -lt "$num_cores" ]
     do
-        (echo "quit" > ${FIFO_P}.$curr_core)
+        echo "quit" > ${FIFO_P}.$curr_core
         curr_core=$(( $curr_core + 1 ))
     done
 }
@@ -105,7 +105,7 @@ echo "${SOCK_S} ready..."
 # create the server FIFO (if not already created) that the server will read from
 if [ ! -p ${FIFO_S} ]; then
     if
-        exec mkfifo ${FIFO_S}
+        mkfifo ${FIFO_S}
     then
         echo "Ready for processing : place jobs into ${FIFO_S}"
     else
@@ -118,12 +118,12 @@ fi
 # running server that will feed data to processors in round robin
 #   increments jobs completed in an array for each processor
 core=0
-shutdown=0
 while read line < ${FIFO_S}
 do
     if [ "$line" = 'shutdown' ]
     then
         # leave the while loop
+
         stop_background "$NUM_CORES"
         break
     elif [ "$line" = 'status' ]
@@ -144,4 +144,9 @@ done
 # wait for processors to exit before server
 wait
 #
-echo "SERVER OFFLINE."
+
+if [ "$shutdown" -eq "1" ]
+then
+    $(rm ${FIFO_S})
+    echo "SERVER OFFLINE."
+fi
